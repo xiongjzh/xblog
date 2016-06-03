@@ -560,7 +560,7 @@ def _static_file_generator(fpath):
         while block:
             yield block
             block = f.read(BLOCK_SIZE)
-
+#匹配静态文件
 class StaticFileRoute(object):
 
     def __init__(self):
@@ -1431,6 +1431,8 @@ class WSGIApplication(object):
             fn = getattr(m, name)
             if callable(fn) and hasattr(fn, '__web_route__') and hasattr(fn, '__web_method__'):
                 self.add_url(fn)
+            if callable(fn) and hasattr(fn, '__interceptor__'):
+                self.add_interceptor(fn)
 
     def add_url(self, func):
         self._check_not_running()

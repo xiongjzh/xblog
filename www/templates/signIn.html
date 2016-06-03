@@ -1,0 +1,76 @@
+{% extends '__base__.html' %}
+
+{% block title %}登录{% endblock %}
+
+{% block beforehead %}
+
+<script>
+function validateEmail(email) {
+    var re = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+    return re.test(email.toLowerCase());
+}
+function submit_form(){
+    event.preventDefault();
+    var postData={
+        email:$('#email').val().toLowerCase(),
+        password:''
+    };
+    console.log(postData);
+    if (!validateEmail(postData.email)) {
+        return showError('请输入正确的Email地址','warning');
+    }
+    if ($('#password').val().length < 6) {
+        return showError('口令长度至少为6个字符','warning');
+    }
+    postData.password=CryptoJS.MD5($('#password').val()).toString();
+    $.ajax({
+        cache: false,
+        type: "POST",
+        url:'/api/user/signin',
+        data:postData,
+        async: false,
+        error: function(request) {
+            console.log(request);
+            alert("Connection error");
+        },
+        success: function(data) {
+            console.log(data);
+            if("error" in data)
+                showError(data);
+            else if("created_at" in data){
+                showError("登录成功","success",1000);
+                //location.href ="/";
+                t=setTimeout("location.href ='/'",1000);
+            }
+        }
+    });    
+}
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="uk-width-1-4"></div>
+<div class="uk-width-2-4">
+    <h1>用户登录</h1>
+    <form id="form-signIn" class="uk-form uk-form-stacked" onchange="showError('')">
+        <div class="uk-alert uk-hidden"></div>
+        <div class="uk-form-row">
+            <label class="uk-form-label">电子邮件:</label>
+            <div class="uk-form-controls">
+                <input id="email" name="email" type="text" class="uk-width-1-1">
+            </div>
+        </div>
+        <div class="uk-form-row">
+            <label class="uk-form-label">输入口令:</label>
+            <div class="uk-form-controls">
+                <input id="password" type="password" class="uk-width-1-1">
+            </div>
+        </div>
+        <div class="uk-form-row">
+            <button type="submit" onclick="submit_form()" class="uk-button uk-button-primary">登录</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

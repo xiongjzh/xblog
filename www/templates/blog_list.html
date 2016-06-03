@@ -1,0 +1,128 @@
+{% extends '__base__.html' %}
+
+{% block title %}blog列表{% endblock %}
+
+{% block beforehead %}
+
+<script>
+Vue.filter('toDateTime', function (t) {
+    delta = int(time.time() - t)
+    if delta < 60:
+        return u'1分钟前'
+    if delta < 3600:
+        return u'%s分钟前' % (delta // 60)
+    if delta < 86400:
+        return u'%s小时前' % (delta // 3600)
+    if delta < 604800:
+        return u'%s天前' % (delta // 86400)
+    dt = datetime.fromtimestamp(t)
+    return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
+});
+def datetime_filter(t):
+    delta = int(time.time() - t)
+    if delta < 60:
+        return u'1分钟前'
+    if delta < 3600:
+        return u'%s分钟前' % (delta // 60)
+    if delta < 86400:
+        return u'%s小时前' % (delta // 3600)
+    if delta < 604800:
+        return u'%s天前' % (delta // 86400)
+    dt = datetime.fromtimestamp(t)
+    return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
+function initVM(data) {
+    $('#div-blogs').show();
+    var vm = new Vue({
+        el: '#div-blogs',
+        data: {
+            blogs: data.blogs,
+            page: data.page
+        },
+        methods: {
+            previous: function () {
+                gotoPage(this.page.page_index - 1);
+            },
+            next: function () {
+                gotoPage(this.page.page_index + 1);
+            },
+            edit_blog: function (blog) {
+                location.assign('/manage/blogs/edit/' + blog.id);
+            }
+        }
+    });
+}
+
+// function gotoPage(page_index){
+//     $.ajax({
+//         cache: false,
+//         type: "GET",
+//         url:'/api/blogs?page='+page_index,
+//         async: false,
+//         error: function(request) {
+//             console.log(request);
+//             alert("Connection error");
+//         },
+//         success: function(data) {
+//             console.log(data);
+//             if("error" in data)
+//                 alert(data);
+//             else if("created_at" in data){
+//                 // showError("提交成功","success",1000);
+//                 //location.href ="/";
+//                 // t=setTimeout("location.href ='/'",1000);
+//                 initVM(results);
+//             }
+//         }
+//     });     
+// }
+$(function() {
+    getApi('/api/blogs?page={{ page_index }}', function (err, results) {
+        if (err) {
+            return showError(err);
+        }
+        $('#div-loading').hide();
+        initVM(results);
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="div-blogs" class="uk-width-1-1" style="display:none">
+    <table class="uk-table uk-table-hover">
+        <thead>
+            <tr>
+                <th class="uk-width-5-10">标题 / 摘要</th>
+                <th class="uk-width-2-10">作者</th>
+                <th class="uk-width-2-10">创建时间</th>
+                <th class="uk-width-1-10">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-repeat="blog: blogs" >
+                <td>
+                    <a target="_blank" v-attr="href: '/blog/'+blog.id" v-text="blog.name"></a>
+                </td>
+                <td>
+                    <a target="_blank" v-attr="href: '/user/'+blog.user_id" v-text="blog.user_name"></a>
+                </td>
+                <td>
+                    <span v-text="blog.created_at.toDateTime()"></span>
+                </td>
+                <td>
+                    <a href="#0" v-on="click: edit_blog(blog)"><i class="uk-icon-edit"></i>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="uk-width-1-1 uk-text-center">
+        <ul class="uk-pagination">
+            <li v-if="! page.has_previous" class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></span></li>
+            <li v-if="page.has_previous"><a v-on="click: previous()" href="#0"><i class="uk-icon-angle-double-left"></i></a></li>
+            <li class="uk-active"><span v-text="page.page_index"></span></li>
+            <li v-if="! page.has_next" class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></span></li>
+            <li v-if="page.has_next"><a v-on="click: next()" href="#0"><i class="uk-icon-angle-double-right"></i></a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

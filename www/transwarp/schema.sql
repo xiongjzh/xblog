@@ -1,5 +1,5 @@
 -- init database 
--- generated at Fri May 20 22:00:43 2016
+-- generated at Fri Jun 03 21:29:35 2016
 drop database if exists xblog;
 create database xblog;
 use xblog;
